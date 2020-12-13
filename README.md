@@ -2,6 +2,9 @@
 
 This is the repository for the final proyect of INT_MACH_LEARNING subject.
 
+## Models used
+GoogleNet and VGG16, trained on ImageNet
+
 ## File explanation
 
 The files corresponding with the code to run on CPU are:
