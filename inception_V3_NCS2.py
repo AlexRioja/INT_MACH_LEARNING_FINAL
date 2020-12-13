@@ -8,7 +8,7 @@ from imutils.video import VideoStream
 from imutils.video import FPS
 import numpy as np
 
-º
+
 def preprocess(frame):
     # convert the image pixels to a numpy array
     image = img_to_array(cv2.resize(frame,(224,224)))
