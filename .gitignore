@@ -4,3 +4,5 @@ IR_model_vgg/IR_model_vgg.mapping
 IR_model_vgg/IR_model_vgg.xml
 TF_model_vgg/tf_model.pb
 vgg16_NCS2.py
+vgg_pretrained.h5
+TF_model_vgg/tf_model.pb

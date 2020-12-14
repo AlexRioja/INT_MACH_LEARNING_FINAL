@@ -74,14 +74,14 @@ else:
 
 res2=input("\nLive feed? (Y/n)")
 if res2=='n':
-    img=cv2.imread('cat.png')
+    img=cv2.imread('wine.png')
     preprocess_and_inference(img,pretrained)
-    key = cv2.waitKey(10000) & 0xFF
+    key = cv2.waitKey(15000) & 0xFF
 else:
     # contador aproximado de FPS
-    fps = FPS().start()
+    
     video_interface = cv2.VideoCapture(0)
-
+    fps = FPS().start()
     while True:
         ret, frame = video_interface.read()
         if not ret:
