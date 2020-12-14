@@ -2,7 +2,7 @@ import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 from keras.models import model_from_json
 from tensorflow.compat.v1.keras import backend as K
-
+import keras
 
 def freeze_session(session, keep_var_names=None, output_names=None, clear_devices=True):
     from tensorflow.python.framework.graph_util import convert_variables_to_constants
@@ -21,15 +21,11 @@ def freeze_session(session, keep_var_names=None, output_names=None, clear_device
     return frozen_graph
 
 
-model_file = "Trained_by_me_models/InceptionV3_2.json"
-weights_file = "Trained_by_me_models/InceptionV3_2.h5"
-
-with open(model_file, "r") as file:
-    config = file.read()
+model_file = "vgg_pretrained.h5"
+model=keras.models.load_model(model_file)
 
 K.set_learning_phase(0)
-model = model_from_json(config)
-model.load_weights(weights_file)
+
 
 frozen_graph=freeze_session(K.get_session(),
                             output_names=[out.op.name for out in model.outputs])

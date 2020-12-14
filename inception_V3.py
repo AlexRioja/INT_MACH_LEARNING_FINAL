@@ -16,14 +16,19 @@ from keras.callbacks import ModelCheckpoint, LearningRateScheduler, EarlyStoppin
 from keras import optimizers, losses, activations, models
 from keras.layers import Convolution2D, Dense, Input, Flatten, Dropout, MaxPooling2D, BatchNormalization, GlobalAveragePooling2D, Concatenate
 from keras import applications
+from utils import resize_image
 #keras.backend.clear_session()
 #os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 from keras.models import model_from_json
 
 
-def preprocess_and_inference(frame):
+def preprocess_and_inference(frame,pretrained):
+    result= resize_image(frame)
     # convert the image pixels to a numpy array
-    image = img_to_array(cv2.resize(frame,(299,299)))
+    if pretrained:
+        image = img_to_array(cv2.resize(frame,(299,299)))
+    else:
+        image = img_to_array(cv2.resize(frame,(224,224)))
     # reshape data for the model (samples, rows, columns, and channels.)
     image = image.reshape((1, image.shape[0], image.shape[1], image.shape[2]))
     # prepare the image for the VGG model
@@ -41,18 +46,18 @@ def preprocess_and_inference(frame):
         print("{}. {}: {:.2f}%".format(i + 1, label, prob * 100))
     '''
     
-    
     # print the classification
     print('%s (%.2f%%)' % (first_pred[1], first_pred[2]*100))
-    cv2.putText(frame, "Prediction:"+str(first_pred[1])+" with: {:.2f}".format(first_pred[2]*100)+'%', 
-                    (5, frame.shape[0] - 5), cv2.FONT_HERSHEY_PLAIN, 1.3, (66, 53, 243), 2,
+    cv2.putText(result, "Prediction:"+str(first_pred[1])+" with: {:.2f}".format(first_pred[2]*100)+'%', 
+                    (5, result.shape[0] - 5), cv2.FONT_HERSHEY_PLAIN, 1.3, (66, 53, 243), 2,
                 cv2.LINE_AA)
     
-    cv2.imshow("Reconocimiento Inception V3", frame)
+    cv2.imshow("Reconocimiento Inception V3", result)
     
 res=input("Use pretrained or not?(y/N):")
-
+pretrained=False
 if res=='y':
+    pretrained=True
     #____________________FIRST OPTION, PRETRAINED 
     #   
     model = InceptionV3(weights="imagenet")
@@ -67,21 +72,28 @@ else:
     model.load_weights("Trained_by_me_models/InceptionV3.h5")
     print("Loaded model from disk")
 
-# contador aproximado de FPS
-fps = FPS().start()
-video_interface = cv2.VideoCapture(0)
+res2=input("\nLive feed? (Y/n)")
+if res2=='n':
+    img=cv2.imread('cat.png')
+    preprocess_and_inference(img,pretrained)
+    key = cv2.waitKey(10000) & 0xFF
+else:
+    # contador aproximado de FPS
+    fps = FPS().start()
+    video_interface = cv2.VideoCapture(0)
 
-while True:
-    ret, frame = video_interface.read()
-    if not ret:
-        break
-    preprocess_and_inference(frame)
-    fps.update()
-    key = cv2.waitKey(1) & 0xFF
+    while True:
+        ret, frame = video_interface.read()
+        if not ret:
+            break
+        preprocess_and_inference(frame,pretrained)
+        fps.update()
+        key = cv2.waitKey(1) & 0xFF
 
-    # rompemos bucle con la tecla q
-    if key == ord("q"):
-        break
-fps.stop()
-print("FPS aproximados: {:.2f}".format(fps.fps()))
+        # rompemos bucle con la tecla q
+        if key == ord("q"):
+            break
+    fps.stop()
+    print("FPS aproximados: {:.2f}".format(fps.fps()))
+cv2.destroyAllWindows()
 

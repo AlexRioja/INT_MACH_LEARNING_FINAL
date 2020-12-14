@@ -7,6 +7,8 @@ import imutils
 from imutils.video import VideoStream
 from imutils.video import FPS
 import numpy as np
+from utils import resize_image
+
 
 def preprocess(frame):
     # convert the image pixels to a numpy array
@@ -41,34 +43,43 @@ def load_ncs_model():
 
     return exec_net,input_blob,input_shape
 
-def process_output(res):
-    label=decode_predictions(res['dense_1/Softmax'])   
+def process_output(res,image):
+    result= resize_image(image)
+    label=decode_predictions(res['predictions/Softmax'])   
     # print the classification
     label = label[0][0]
     print('%s (%.2f%%)' % (label[1], label[2]*100))
-    cv2.putText(frame, "Prediction:"+str(label[1])+" with: {:.2f}".format(label[2]*100)+'%',(5,frame.shape[0] - 5), cv2.FONT_HERSHEY_PLAIN,1.3,(66,53, 243), 2,cv2.LINE_AA)
-    cv2.imshow("Reconocimiento VGG16", frame)
+    cv2.putText(result, "Prediction:"+str(label[1])+" with: {:.2f}".format(label[2]*100)+'%',(5,result.shape[0] - 5), cv2.FONT_HERSHEY_PLAIN,1.3,(66,53, 243), 2,cv2.LINE_AA)
+    cv2.imshow("Reconocimiento VGG16", result)
 
 net,i_b,o_s=load_ncs_model()
+res=input("\nLive feed? (Y/n)")
+if res=='n':
+    img=cv2.imread('wine.png')
+    image=preprocess(img)
+    res=net.infer(inputs={"input_1":image})
+    process_output(res,img)
+    key = cv2.waitKey(10000) & 0xFF
+else:
+    fps = FPS().start()
+    video_interface = cv2.VideoCapture(0)
+    while True:
+        ret, frame = video_interface.read()
+        if not ret:
+            break
+        image=preprocess(frame)
+        #req_handle = net.start_async(request_id=0, inputs={i_b:image})
+        res=net.infer(inputs={"input_1":image})
+        process_output(res,frame)
+        fps.update()
+        key = cv2.waitKey(1) & 0xFF
 
-fps = FPS().start()
-video_interface = cv2.VideoCapture(0)
-while True:
-    ret, frame = video_interface.read()
-    if not ret:
-        break
-    image=preprocess(frame)
-    #req_handle = net.start_async(request_id=0, inputs={i_b:image})
-    res=net.infer(inputs={"inception_v3_input":image})
-    process_output(res)
-    fps.update()
-    key = cv2.waitKey(1) & 0xFF
-
-    # rompemos bucle con la tecla q
-    if key == ord("q"):
-        break
-fps.stop()
-print("FPS aproximados: {:.2f}".format(fps.fps()))
+        # rompemos bucle con la tecla q
+        if key == ord("q"):
+            break
+    fps.stop()
+    print("FPS aproximados: {:.2f}".format(fps.fps()))
+cv2.destroyAllWindows()
 
 
 

@@ -30,7 +30,7 @@ keras2ncs.py-->GoogLeNet custom trained to .pb
 keras2ncs_vgg.py-->VGG16 pretrained to .pb
 ```
 ## Usage
-Simply run the file you want
+Simply run the file you want. Press 'q' to close the windows
 
 ## Dependencies
 OpenCV,
